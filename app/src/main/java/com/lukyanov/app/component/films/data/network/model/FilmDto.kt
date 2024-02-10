@@ -15,7 +15,7 @@ class FilmDto(
     val posterUrlPreview: String? = null,
 )
 
-fun FilmDto.toFilm(): Film? {
+fun FilmDto.toFilm(favourite: Boolean = false): Film? {
     return Film(
         id = id?.toString() ?: return null,
         name = name ?: return null,
@@ -25,6 +25,6 @@ fun FilmDto.toFilm(): Film? {
         year = year,
         posterUrl = posterUrl,
         posterUrlPreview = posterUrlPreview,
-        favourite = false,
+        favourite = favourite,
     )
 }

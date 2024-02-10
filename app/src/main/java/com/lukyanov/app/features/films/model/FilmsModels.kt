@@ -33,6 +33,10 @@ internal sealed interface TopBarState {
     data class Search(val query: String = "") : TopBarState
 }
 
+internal sealed interface FilmsUiEffect {
+    class Error(val msg: UiText) : FilmsUiEffect
+}
+
 internal sealed interface FilmsNavEvent {
     class ToFilmDetails(val filmId: String) : FilmsNavEvent
 }

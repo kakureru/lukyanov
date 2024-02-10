@@ -1,6 +1,5 @@
 package com.lukyanov.app.features.films
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lukyanov.app.R
@@ -11,6 +10,7 @@ import com.lukyanov.app.features.films.model.FilmFilter
 import com.lukyanov.app.features.films.model.FilmFilterItem
 import com.lukyanov.app.features.films.model.FilmListState
 import com.lukyanov.app.features.films.model.FilmsNavEvent
+import com.lukyanov.app.features.films.model.FilmsUiEffect
 import com.lukyanov.app.features.films.model.FilmsUiState
 import com.lukyanov.app.features.films.model.TopBarState
 import com.lukyanov.app.features.films.model.toFilmItemModel
@@ -39,6 +39,9 @@ internal class FilmsViewModel(
     private val _uiState = MutableStateFlow(initState)
     val uiState: StateFlow<FilmsUiState> = _uiState.asStateFlow()
 
+    private val _uiEffect = Channel<FilmsUiEffect>()
+    val uiEffect: Flow<FilmsUiEffect> = _uiEffect.receiveAsFlow()
+
     private val _navEvent = Channel<FilmsNavEvent>()
     val navEvent: Flow<FilmsNavEvent> = _navEvent.receiveAsFlow()
 
@@ -51,7 +54,9 @@ internal class FilmsViewModel(
     }
 
     fun onFilmLongClick(filmId: String) = viewModelScope.launch {
-
+        filmsRepo.toggleFavourite(filmId = filmId).onError {
+            _uiEffect.send(FilmsUiEffect.Error(it.toUiTextOrUnknownError()))
+        }
     }
 
     fun onSearchClick() {

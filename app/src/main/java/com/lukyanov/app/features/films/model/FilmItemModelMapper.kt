@@ -12,5 +12,5 @@ internal fun Film.toFilmItemModel() = FilmItemModel(
         genres.firstOrNull()?.let { append("${it.capitalize()} ") }
         append("($year)")
     },
-    favourite = false,
+    favourite = favourite,
 )
