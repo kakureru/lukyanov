@@ -18,10 +18,12 @@ import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = Blue,
+    inversePrimary = BlueLight,
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Blue,
+    primaryContainer = BlueLight,
     surface = Color.White,
     onSurface = Color.Black,
     onSurfaceVariant = Neutral,
@@ -40,7 +42,7 @@ fun LukyanovTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
+            window.statusBarColor = Color.Transparent.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }

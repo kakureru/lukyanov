@@ -30,3 +30,5 @@ sealed class DataState<T> {
         block: (String?) -> E
     ): E? = if (this is Error) block(message) else null
 }
+
+fun <T> T.success() = DataState.Success(this)

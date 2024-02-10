@@ -7,7 +7,12 @@ import com.lukyanov.app.features.films.ui.FilmItemModel
 internal data class FilmsUiState(
     val topBarState: TopBarState,
     val filmsListState: FilmListState = FilmListState.Content(),
-    val filters: List<FilmFilter> = FilmFilter.entries,
+    val filters: List<FilmFilterItem>,
+)
+
+internal data class FilmFilterItem(
+    val filter: FilmFilter,
+    val selected: Boolean,
 )
 
 internal enum class FilmFilter(val text: UiText) {

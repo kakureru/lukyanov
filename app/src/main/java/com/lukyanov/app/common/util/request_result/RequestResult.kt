@@ -18,3 +18,10 @@ fun <T : Any, R> GenericRequestResult<T>.mapToDataState(map: (T) -> R): DataStat
     is RequestResult.NetworkError -> DataState.Error(error.message)
     is RequestResult.UnknownError -> DataState.Error(error?.message)
 }
+
+fun <T : Any, R> RequestResult<T, String>.flatMapToDataState(map: (T) -> DataState<R>): DataState<R> = when (this) {
+    is RequestResult.Success -> map(this.body)
+    is RequestResult.ApiError -> DataState.Error(this.body)
+    is RequestResult.UnknownError -> DataState.Error(error?.message)
+    is RequestResult.NetworkError -> DataState.Error(error.message)
+}

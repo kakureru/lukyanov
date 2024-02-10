@@ -3,43 +3,40 @@ package com.lukyanov.app.features.films.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.lukyanov.app.R
 import com.lukyanov.app.common.ui.CollectFlowSafelyLoosingProof
+import com.lukyanov.app.common.ui.FullScreenLoader
+import com.lukyanov.app.common.ui.GenericError
 import com.lukyanov.app.common.ui.SearchTextField
 import com.lukyanov.app.features.films.FilmsViewModel
 import com.lukyanov.app.features.films.model.FilmFilter
+import com.lukyanov.app.features.films.model.FilmFilterItem
 import com.lukyanov.app.features.films.model.FilmListState
 import com.lukyanov.app.features.films.model.FilmsNavEvent
 import com.lukyanov.app.features.films.model.TopBarState
@@ -47,14 +44,13 @@ import com.lukyanov.app.features.films.model.TopBarState
 @Composable
 internal fun FilmsScreen(
     viewModel: FilmsViewModel,
+    goToFilmDetails: (filmId: String) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     CollectFlowSafelyLoosingProof(flow = viewModel.navEvent) { navEvent ->
         when (navEvent) {
-            is FilmsNavEvent.ToFilmDetails -> {
-                Unit
-            }
+            is FilmsNavEvent.ToFilmDetails -> goToFilmDetails(navEvent.filmId)
         }
     }
 
@@ -66,37 +62,39 @@ internal fun FilmsScreen(
                 onStopSearchClick = viewModel::onStopSearchClick,
                 onSearchQueryChange = viewModel::onSearchQueryChange
             )
-        },
-        bottomBar = {
-            FilmFilterRow(
-                filters = { state.filters },
-                onFilterClick = viewModel::onFilterClick
-            )
         }
     ) { paddingValues ->
         when (val filmsState = state.filmsListState) {
-            FilmListState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize()) { CircularProgressIndicator() }
-            }
+            FilmListState.Loading -> FullScreenLoader()
 
             is FilmListState.Error -> {
-                // TODO
+                GenericError(onButtonClick = viewModel::onReloadClick)
             }
 
             is FilmListState.Content -> {
-                LazyColumn(
-                    modifier = Modifier.padding(paddingValues),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp)
-                ) {
-                    items(items = filmsState.films, key = { item -> item.id }) {
-                        FilmItem(
-                            model = it,
-                            onClick = { viewModel.onFilmClick(it.id) },
-                            onLongClick = { viewModel.onFilmLongClick(it.id) },
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
+                Box {
+                    LazyColumn(
+                        modifier = Modifier.padding(paddingValues),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp)
+                    ) {
+                        items(items = filmsState.films, key = { item -> item.id }) {
+                            FilmItem(
+                                model = it,
+                                onClick = { viewModel.onFilmClick(it.id) },
+                                onLongClick = { viewModel.onFilmLongClick(it.id) },
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            )
+                        }
                     }
+
+                    FilmFilterRow(
+                        filters = { state.filters },
+                        onFilterClick = viewModel::onFilterClick,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 32.dp)
+                            .align(Alignment.BottomCenter)
+                    )
                 }
             }
         }
@@ -132,7 +130,7 @@ private fun FilmsTopBar(
                         )
                     }
                 },
-                colors = topAppBarColors
+                colors = topAppBarColors,
             )
         }
 
@@ -157,14 +155,47 @@ private fun FilmsTopBar(
             )
         }
     }
-
 }
 
 @Composable
 private fun FilmFilterRow(
-    filters: () -> List<FilmFilter>,
+    filters: () -> List<FilmFilterItem>,
     onFilterClick: (FilmFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        for (item in filters()) {
+            FilterButton(
+                text = item.filter.text.stringValue(),
+                onClick = { onFilterClick(item.filter) },
+                selected = item.selected,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
 
+@Composable
+private fun FilterButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val colors =
+        if (selected) ButtonDefaults.buttonColors()
+        else ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.primary,
+        )
+    Button(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 45.dp),
+        colors = colors
+    ) {
+        Text(text = text)
+    }
 }

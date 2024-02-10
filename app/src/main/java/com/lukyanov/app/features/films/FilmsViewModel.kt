@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lukyanov.app.R
 import com.lukyanov.app.common.ui.UiText
+import com.lukyanov.app.common.ui.toUiTextOrUnknownError
 import com.lukyanov.app.component.films.FilmsRepo
 import com.lukyanov.app.features.films.model.FilmFilter
+import com.lukyanov.app.features.films.model.FilmFilterItem
 import com.lukyanov.app.features.films.model.FilmListState
 import com.lukyanov.app.features.films.model.FilmsNavEvent
 import com.lukyanov.app.features.films.model.FilmsUiState
@@ -27,7 +29,11 @@ internal class FilmsViewModel(
 ) : ViewModel() {
 
     private val initState = FilmsUiState(
-        topBarState = TopBarState.Title(text = UiText.Resource(R.string.popular))
+        topBarState = TopBarState.Title(text = UiText.Resource(R.string.popular)),
+        filters = listOf(
+            FilmFilterItem(filter = FilmFilter.POPULAR, selected = true),
+            FilmFilterItem(filter = FilmFilter.FAVOURITES, selected = false),
+        )
     )
 
     private val _uiState = MutableStateFlow(initState)
@@ -70,8 +76,10 @@ internal class FilmsViewModel(
                     )
                     _uiState.update { it.copy(filmsListState = filmsListState) }
                 },
-                error = {
-                    Log.d("MYTAG", it.toString())
+                error = { msg ->
+                    _uiState.update {
+                        it.copy(filmsListState = FilmListState.Error(msg = msg.toUiTextOrUnknownError()))
+                    }
                 },
             )
         }
@@ -87,5 +95,9 @@ internal class FilmsViewModel(
         _uiState.update {
             it.copy(topBarState = TopBarState.Title(UiText.Resource(R.string.popular))) // FIXME
         }
+    }
+
+    fun onReloadClick() {
+        loadFilms()
     }
 }

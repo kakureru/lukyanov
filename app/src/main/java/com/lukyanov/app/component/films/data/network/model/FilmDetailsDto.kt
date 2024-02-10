@@ -5,9 +5,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-class FilmDto(
-    @SerialName("filmId") val id: Int? = null,
+class FilmDetailsDto(
+    @SerialName("kinopoiskId") val id: Int? = null,
     @SerialName("nameRu") val name: String? = null,
+    val description: String? = null,
     val genres: List<GenreDto>? = null,
     val countries: List<CountryDto>? = null,
     val year: Int? = null,
@@ -15,11 +16,11 @@ class FilmDto(
     val posterUrlPreview: String? = null,
 )
 
-fun FilmDto.toFilm(): Film? {
+fun FilmDetailsDto.toFilm(): Film? {
     return Film(
         id = id?.toString() ?: return null,
         name = name ?: return null,
-        description = null,
+        description = description,
         genres = genres?.map { it.genre } ?: emptyList(),
         countries = countries?.map { it.country } ?: emptyList(),
         year = year,

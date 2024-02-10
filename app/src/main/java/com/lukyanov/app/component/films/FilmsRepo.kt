@@ -6,4 +6,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface FilmsRepo {
     fun getPopularFilms(): Flow<DataState<List<Film>>>
+    fun getFilm(filmId: String): Flow<DataState<Film>>
 }
