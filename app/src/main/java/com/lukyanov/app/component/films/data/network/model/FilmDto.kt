@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class FilmDto(
     @SerialName("filmId") val id: Int? = null,
+    @SerialName("kinopoiskId") val kinopoiskId: Int? = null,
     @SerialName("nameRu") val name: String? = null,
     val genres: List<GenreDto>? = null,
     val countries: List<CountryDto>? = null,
@@ -17,7 +18,7 @@ class FilmDto(
 
 fun FilmDto.toFilm(favourite: Boolean = false): Film? {
     return Film(
-        id = id?.toString() ?: return null,
+        id = id?.toString() ?: kinopoiskId?.toString() ?: return null,
         name = name ?: return null,
         description = null,
         genres = genres?.map { it.genre } ?: emptyList(),

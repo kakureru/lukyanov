@@ -33,7 +33,7 @@ internal class FilmsRepoImpl(
         }
         else send(DataState.Loading())
 
-        val fresh = filmsApi.getTopFilms(type = TYPE_POPULAR, page = 1).mapToDataState { response ->
+        val fresh = filmsApi.getTopFilms(type = TYPE_POPULAR).mapToDataState { response ->
             response.films.mapNotNull {
                 it.toFilm(favourite = it.id?.toString() in favouriteIds)
             }
@@ -50,6 +50,15 @@ internal class FilmsRepoImpl(
                 send(newData.success())
             }
         }
+    }
+
+    override fun searchFilms(searchQuery: String): Flow<DataState<List<Film>>> = flow {
+        emit(DataState.Loading())
+        val favouriteIds = favouriteFilmsDao.getAllIds()
+        val result = filmsApi.getFilmsByQuery(query = searchQuery).mapToDataState { response ->
+            response.items.mapNotNull { it.toFilm(favourite = it.id?.toString() in favouriteIds) }
+        }
+        emit(result)
     }
 
     override fun getFilm(filmId: String): Flow<DataState<Film>> = flow {

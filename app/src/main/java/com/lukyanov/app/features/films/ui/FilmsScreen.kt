@@ -39,7 +39,7 @@ import com.lukyanov.app.common.ui.BaseError
 import com.lukyanov.app.common.ui.CollectFlowSafelyLoosingProof
 import com.lukyanov.app.common.ui.FullScreenLoader
 import com.lukyanov.app.common.ui.SafeLaunchedEffect
-import com.lukyanov.app.common.ui.SearchTextField
+import com.lukyanov.app.common.ui.search.SearchTopAppBar
 import com.lukyanov.app.features.films.FilmsViewModel
 import com.lukyanov.app.features.films.model.FilmFilter
 import com.lukyanov.app.features.films.model.FilmFilterItem
@@ -138,23 +138,19 @@ private fun FilmsTopBar(
     )
     when (val stateSnap = state()) {
         is TopBarState.Search -> {
-            TopAppBar(
-                title = {
-                    SearchTextField(
-                        query = stateSnap.query,
-                        onSearchQueryChange = onSearchQueryChange,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onStopSearchClick) {
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowBack,
-                            contentDescription = null,
-                        )
-                    }
-                },
-                colors = topAppBarColors,
-            )
+           SearchTopAppBar(
+               query = stateSnap.query,
+               colors = topAppBarColors,
+               onSearchQueryChange = onSearchQueryChange,
+               navigationIcon = {
+                   IconButton(onClick = onStopSearchClick) {
+                       Icon(
+                           imageVector = Icons.Rounded.ArrowBack,
+                           contentDescription = null,
+                       )
+                   }
+               }
+           )
         }
 
         is TopBarState.Title -> {

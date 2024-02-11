@@ -8,6 +8,7 @@ import com.lukyanov.app.R
 import com.lukyanov.app.common.ui.UiText
 import com.lukyanov.app.common.ui.toUiTextOrGenericError
 import com.lukyanov.app.component.films.FilmsRepo
+import com.lukyanov.app.component.films.usecase.GetPopularFilmsUseCase
 import com.lukyanov.app.features.films.model.FilmFilter
 import com.lukyanov.app.features.films.model.FilmFilterItem
 import com.lukyanov.app.features.films.model.FilmListState
@@ -27,12 +28,14 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal class FilmsViewModel(
     private val filmsRepo: FilmsRepo,
+    private val getPopularFilmsUseCase: GetPopularFilmsUseCase,
 ) : ViewModel() {
 
     private val _searchQuery = MutableSharedFlow<String>()
@@ -90,7 +93,10 @@ internal class FilmsViewModel(
 
     fun onExitSearchClick() {
         _uiState.update {
-            it.copy(topBarState = TopBarState.Title(UiText.Resource(R.string.popular))) // FIXME
+            it.copy(topBarState = TopBarState.Title(UiText.Resource(R.string.popular)))
+        }
+        viewModelScope.launch {
+            _searchQuery.emit("")
         }
     }
 
@@ -98,8 +104,8 @@ internal class FilmsViewModel(
         loadFilms()
     }
 
-    private fun loadFilms() = viewModelScope.launch {
-        filmsRepo.getPopularFilms().collectLatest { result ->
+    private fun loadFilms(searchQuery: String = "") = viewModelScope.launch {
+        getPopularFilmsUseCase(searchQuery = searchQuery).collectLatest { result ->
             result.on(
                 loading = {
                     _uiState.update { it.copy(filmsListState = FilmListState.Loading) }
@@ -121,8 +127,9 @@ internal class FilmsViewModel(
 
     private fun subscribeToSearchQueryChanges() {
         _searchQuery
-            .debounce(500L)
+            .debounce(300L)
             .distinctUntilChanged()
+            .onEach { loadFilms(searchQuery = it) }
             .launchIn(viewModelScope)
     }
 }
