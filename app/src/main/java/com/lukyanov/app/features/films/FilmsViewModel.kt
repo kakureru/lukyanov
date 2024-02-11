@@ -1,10 +1,12 @@
+@file:OptIn(FlowPreview::class)
+
 package com.lukyanov.app.features.films
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lukyanov.app.R
 import com.lukyanov.app.common.ui.UiText
-import com.lukyanov.app.common.ui.toUiTextOrUnknownError
+import com.lukyanov.app.common.ui.toUiTextOrGenericError
 import com.lukyanov.app.component.films.FilmsRepo
 import com.lukyanov.app.features.films.model.FilmFilter
 import com.lukyanov.app.features.films.model.FilmFilterItem
@@ -14,12 +16,17 @@ import com.lukyanov.app.features.films.model.FilmsUiEffect
 import com.lukyanov.app.features.films.model.FilmsUiState
 import com.lukyanov.app.features.films.model.TopBarState
 import com.lukyanov.app.features.films.model.toFilmItemModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,6 +34,8 @@ import kotlinx.coroutines.launch
 internal class FilmsViewModel(
     private val filmsRepo: FilmsRepo,
 ) : ViewModel() {
+
+    private val _searchQuery = MutableSharedFlow<String>()
 
     private val initState = FilmsUiState(
         topBarState = TopBarState.Title(text = UiText.Resource(R.string.popular)),
@@ -47,6 +56,7 @@ internal class FilmsViewModel(
 
     init {
         loadFilms()
+        subscribeToSearchQueryChanges()
     }
 
     fun onFilmClick(filmId: String) = viewModelScope.launch {
@@ -55,7 +65,7 @@ internal class FilmsViewModel(
 
     fun onFilmLongClick(filmId: String) = viewModelScope.launch {
         filmsRepo.toggleFavourite(filmId = filmId).onError {
-            _uiEffect.send(FilmsUiEffect.Error(it.toUiTextOrUnknownError()))
+            _uiEffect.send(FilmsUiEffect.Error(it.toUiTextOrGenericError()))
         }
     }
 
@@ -67,6 +77,25 @@ internal class FilmsViewModel(
 
     fun onFilterClick(filter: FilmFilter) {
 
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update {
+            it.copy(topBarState = TopBarState.Search(query = query))
+        }
+        viewModelScope.launch {
+            _searchQuery.emit(query)
+        }
+    }
+
+    fun onExitSearchClick() {
+        _uiState.update {
+            it.copy(topBarState = TopBarState.Title(UiText.Resource(R.string.popular))) // FIXME
+        }
+    }
+
+    fun onReloadClick() {
+        loadFilms()
     }
 
     private fun loadFilms() = viewModelScope.launch {
@@ -83,26 +112,17 @@ internal class FilmsViewModel(
                 },
                 error = { msg ->
                     _uiState.update {
-                        it.copy(filmsListState = FilmListState.Error(msg = msg.toUiTextOrUnknownError()))
+                        it.copy(filmsListState = FilmListState.Error(msg = msg.toUiTextOrGenericError()))
                     }
                 },
             )
         }
     }
 
-    fun onSearchQueryChange(query: String) {
-        _uiState.update {
-            it.copy(topBarState = TopBarState.Search(query = query))
-        }
-    }
-
-    fun onStopSearchClick() {
-        _uiState.update {
-            it.copy(topBarState = TopBarState.Title(UiText.Resource(R.string.popular))) // FIXME
-        }
-    }
-
-    fun onReloadClick() {
-        loadFilms()
+    private fun subscribeToSearchQueryChanges() {
+        _searchQuery
+            .debounce(500L)
+            .distinctUntilChanged()
+            .launchIn(viewModelScope)
     }
 }

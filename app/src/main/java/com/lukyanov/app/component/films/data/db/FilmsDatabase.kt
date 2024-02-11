@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.lukyanov.app.component.films.data.db.dao.FavouriteFilmsDao
+import com.lukyanov.app.component.films.data.db.dao.FilmsDao
 import com.lukyanov.app.component.films.data.db.model.FavouriteFilmEntity
 import com.lukyanov.app.component.films.data.db.model.FilmEntity
 

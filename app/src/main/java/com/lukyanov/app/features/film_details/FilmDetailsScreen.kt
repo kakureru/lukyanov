@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.lukyanov.app.R
+import com.lukyanov.app.common.ui.BaseError
 import com.lukyanov.app.common.ui.CollectFlowSafelyLoosingProof
 import com.lukyanov.app.common.ui.FullScreenLoader
-import com.lukyanov.app.common.ui.GenericError
 import com.lukyanov.app.features.film_details.model.FilmDetailsNavEvent
 import com.lukyanov.app.features.film_details.model.FilmDetailsUiState
 
@@ -81,7 +81,11 @@ internal fun FilmDetailsScreen(
             }
 
             is FilmDetailsUiState.Error -> {
-                GenericError(onButtonClick = viewModel::onReloadClick)
+                BaseError(
+                    text = stateSnap.msg.stringValue(),
+                    buttonText = stringResource(id = R.string.action_repeat),
+                    onButtonClick = viewModel::onReloadClick,
+                )
             }
 
             is FilmDetailsUiState.Content -> {

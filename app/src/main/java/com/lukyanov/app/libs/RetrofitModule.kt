@@ -1,7 +1,7 @@
 package com.lukyanov.app.libs
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.olimppromo.utils.request_result.RequestResultAdapterFactory
+import com.lukyanov.app.common.util.request_result.RequestResultAdapterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType

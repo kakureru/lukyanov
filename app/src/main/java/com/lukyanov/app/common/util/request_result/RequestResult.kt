@@ -1,9 +1,10 @@
 package com.lukyanov.app.common.util.request_result
 
+import com.lukyanov.app.common.core.ErrorDto
 import com.lukyanov.app.common.util.DataState
 import java.io.IOException
 
-typealias GenericRequestResult<T> = RequestResult<T, String>
+typealias GenericRequestResult<T> = RequestResult<T, ErrorDto>
 
 sealed class RequestResult<out T : Any, out U : Any> {
     data class Success<T : Any>(val body: T) : RequestResult<T, Nothing>()
@@ -14,14 +15,14 @@ sealed class RequestResult<out T : Any, out U : Any> {
 
 fun <T : Any, R> GenericRequestResult<T>.mapToDataState(map: (T) -> R): DataState<R> = when (this) {
     is RequestResult.Success -> DataState.Success(map(this.body))
-    is RequestResult.ApiError -> DataState.Error(this.body)
+    is RequestResult.ApiError -> DataState.Error(this.body.message)
     is RequestResult.NetworkError -> DataState.Error(error.message)
     is RequestResult.UnknownError -> DataState.Error(error?.message)
 }
 
-fun <T : Any, R> RequestResult<T, String>.flatMapToDataState(map: (T) -> DataState<R>): DataState<R> = when (this) {
+fun <T : Any, R> GenericRequestResult<T>.flatMapToDataState(map: (T) -> DataState<R>): DataState<R> = when (this) {
     is RequestResult.Success -> map(this.body)
-    is RequestResult.ApiError -> DataState.Error(this.body)
+    is RequestResult.ApiError -> DataState.Error(this.body.message)
     is RequestResult.UnknownError -> DataState.Error(error?.message)
     is RequestResult.NetworkError -> DataState.Error(error.message)
 }

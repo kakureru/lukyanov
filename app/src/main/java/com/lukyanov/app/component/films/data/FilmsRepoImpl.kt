@@ -5,8 +5,8 @@ import com.lukyanov.app.common.util.request_result.flatMapToDataState
 import com.lukyanov.app.common.util.request_result.mapToDataState
 import com.lukyanov.app.common.util.success
 import com.lukyanov.app.component.films.FilmsRepo
-import com.lukyanov.app.component.films.data.db.FavouriteFilmsDao
-import com.lukyanov.app.component.films.data.db.FilmsDao
+import com.lukyanov.app.component.films.data.db.dao.FavouriteFilmsDao
+import com.lukyanov.app.component.films.data.db.dao.FilmsDao
 import com.lukyanov.app.component.films.data.db.model.toFilm
 import com.lukyanov.app.component.films.data.db.model.toFilmEntity
 import com.lukyanov.app.component.films.data.network.FilmsApi
@@ -33,7 +33,7 @@ internal class FilmsRepoImpl(
         }
         else send(DataState.Loading())
 
-        val fresh = filmsApi.getTopFilms().mapToDataState { response ->
+        val fresh = filmsApi.getTopFilms(type = TYPE_POPULAR, page = 1).mapToDataState { response ->
             response.films.mapNotNull {
                 it.toFilm(favourite = it.id?.toString() in favouriteIds)
             }
@@ -42,13 +42,13 @@ internal class FilmsRepoImpl(
 
         fresh.onSuccess { films ->
             filmsDao.refreshFilms(films.map { it.toFilmEntity() })
-        }
 
-        favouriteFilmsDao.getAllIdsFlow().collectLatest { newFavouriteIds ->
-            val newData = filmsDao.getFilms().map {
-                it.toFilm(favourite = it.id in newFavouriteIds)
+            favouriteFilmsDao.getAllIdsFlow().collectLatest { newFavouriteIds ->
+                val newData = filmsDao.getFilms().map {
+                    it.toFilm(favourite = it.id in newFavouriteIds)
+                }
+                send(newData.success())
             }
-            send(newData.success())
         }
     }
 
@@ -77,5 +77,9 @@ internal class FilmsRepoImpl(
                 else -> result as DataState<Unit>
             }
         }
+    }
+
+    companion object {
+        private const val TYPE_POPULAR = "TOP_100_POPULAR_FILMS"
     }
 }

@@ -1,6 +1,5 @@
-package com.olimppromo.utils.request_result
+package com.lukyanov.app.common.util.request_result
 
-import com.lukyanov.app.common.util.request_result.RequestResult
 import retrofit2.Call
 import retrofit2.CallAdapter
 import retrofit2.Retrofit

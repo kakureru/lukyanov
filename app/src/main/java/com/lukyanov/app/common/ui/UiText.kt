@@ -25,4 +25,4 @@ sealed class UiText {
     }
 }
 
-fun String?.toUiTextOrUnknownError() = this?.let { UiText.RawString(it) } ?: UiText.Resource(R.string.error_unknown)
+fun String?.toUiTextOrGenericError() = this?.let { UiText.RawString(it) } ?: UiText.Resource(R.string.error_generic)

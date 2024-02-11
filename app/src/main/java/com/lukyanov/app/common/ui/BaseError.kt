@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -24,47 +23,34 @@ import androidx.compose.ui.unit.dp
 import com.lukyanov.app.R
 
 @Composable
-fun GenericError(
-    onButtonClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        BaseError(
-            text = stringResource(R.string.error_generic),
-            buttonText = stringResource(id = R.string.action_repeat),
-            onButtonClick = onButtonClick,
-            modifier = modifier,
-        )
-    }
-}
-
-@Composable
 fun BaseError(
     text: String,
     buttonText: String,
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Image(
-            imageVector = ImageVector.vectorResource(R.drawable.ic_no_connection),
-            contentDescription = null,
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(text = text, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary)
-
-        Spacer(modifier = Modifier.height(36.dp))
-
-        Button(
-            onClick = onButtonClick,
-            modifier = Modifier.heightIn(min = 45.dp),
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = buttonText)
+            Image(
+                imageVector = ImageVector.vectorResource(R.drawable.ic_no_connection),
+                contentDescription = null,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(text = text, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary)
+
+            Spacer(modifier = Modifier.height(36.dp))
+
+            Button(
+                onClick = onButtonClick,
+                modifier = Modifier.heightIn(min = 45.dp),
+            ) {
+                Text(text = buttonText)
+            }
         }
     }
 }
@@ -73,6 +59,11 @@ fun BaseError(
 @Composable
 private fun BaseErrorPreview() {
     PreviewWrapper {
-        GenericError(onButtonClick = {}, modifier = Modifier.padding(20.dp))
+        BaseError(
+            text = stringResource(id = R.string.error_generic),
+            buttonText = stringResource(id = R.string.action_repeat),
+            onButtonClick = {  },
+            modifier = Modifier.padding(20.dp)
+        )
     }
 }

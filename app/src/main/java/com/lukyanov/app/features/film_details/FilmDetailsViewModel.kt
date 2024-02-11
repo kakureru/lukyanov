@@ -2,7 +2,7 @@ package com.lukyanov.app.features.film_details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lukyanov.app.common.ui.toUiTextOrUnknownError
+import com.lukyanov.app.common.ui.toUiTextOrGenericError
 import com.lukyanov.app.component.films.FilmsRepo
 import com.lukyanov.app.features.film_details.model.FilmDetailsNavEvent
 import com.lukyanov.app.features.film_details.model.FilmDetailsUiState
@@ -42,7 +42,7 @@ internal class FilmDetailsViewModel(
                     _uiState.update { film.toFilmDetailsContent() }
                 },
                 error = { error ->
-                    _uiState.update { FilmDetailsUiState.Error(error.toUiTextOrUnknownError()) }
+                    _uiState.update { FilmDetailsUiState.Error(error.toUiTextOrGenericError()) }
                 }
             )
         }

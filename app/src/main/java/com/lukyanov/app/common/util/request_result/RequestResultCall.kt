@@ -1,6 +1,5 @@
-package com.olimppromo.utils.request_result
+package com.lukyanov.app.common.util.request_result
 
-import com.lukyanov.app.common.util.request_result.RequestResult
 import okhttp3.Request
 import okhttp3.ResponseBody
 import okio.Timeout
