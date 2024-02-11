@@ -2,6 +2,7 @@ package com.lukyanov.app.features.films.model
 
 import com.lukyanov.app.R
 import com.lukyanov.app.common.ui.UiText
+import com.lukyanov.app.component.films.model.Film
 import com.lukyanov.app.features.films.ui.FilmItemModel
 
 internal data class FilmsUiState(
@@ -27,6 +28,14 @@ internal sealed interface FilmListState {
     data class Content(
         val films: List<FilmItemModel> = emptyList(),
     ) : FilmListState
+}
+
+internal fun List<Film>.toFilmsListContent(): FilmListState {
+    val newFilms = this.map { it.toFilmItemModel() }
+    return if (newFilms.isEmpty())
+        FilmListState.Placeholder
+    else
+        FilmListState.Content(films = newFilms)
 }
 
 internal sealed interface TopBarState {

@@ -85,19 +85,19 @@ internal fun FilmsScreen(
             )
         }
     ) { paddingValues ->
-        when (val filmsState = state.filmsListState) {
-            FilmListState.Loading -> FullScreenLoader()
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (val filmsState = state.filmsListState) {
+                FilmListState.Loading -> FullScreenLoader()
 
-            is FilmListState.Error -> {
-                BaseError(
-                    text = filmsState.msg.stringValue(),
-                    buttonText = stringResource(id = R.string.action_repeat),
-                    onButtonClick = viewModel::onReloadClick,
-                )
-            }
+                is FilmListState.Error -> {
+                    BaseError(
+                        text = filmsState.msg.stringValue(),
+                        buttonText = stringResource(id = R.string.action_repeat),
+                        onButtonClick = viewModel::onReloadClick,
+                    )
+                }
 
-            is FilmListState.Content -> {
-                Box(modifier = Modifier.fillMaxSize()) {
+                is FilmListState.Content -> {
                     LazyColumn(
                         modifier = Modifier.padding(paddingValues),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -112,25 +112,25 @@ internal fun FilmsScreen(
                             )
                         }
                     }
+                }
 
-                    FilmFilterRow(
-                        filters = { state.filters },
-                        onFilterClick = viewModel::onFilterClick,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 32.dp)
-                            .align(Alignment.BottomCenter)
-                    )
+                FilmListState.Placeholder -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Placeholder()
+                    }
                 }
             }
 
-            FilmListState.Placeholder -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Placeholder()
-                }
-            }
+            FilmFilterRow(
+                filters = { state.filters },
+                onFilterClick = viewModel::onFilterClick,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 32.dp)
+                    .align(Alignment.BottomCenter)
+            )
         }
     }
 }

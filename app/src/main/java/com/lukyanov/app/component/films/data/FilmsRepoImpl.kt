@@ -25,16 +25,13 @@ internal class FilmsRepoImpl(
 ) : FilmsRepo {
 
     override fun getPopularFilms(): Flow<DataState<List<Film>>> = channelFlow {
-        val cache = filmsDao.getFilms()
         val favouriteIds = favouriteFilmsDao.getAllIds()
+        val cache = filmsDao.getFilms().map { it.toFilm(favourite = it.id in favouriteIds) }
 
-        if (cache.isNotEmpty()) {
-            val mappedData = cache.map { it.toFilm(favourite = it.id in favouriteIds) }
-            send(mappedData.success())
-        }
+        if (cache.isNotEmpty()) send(cache.success())
         else send(DataState.Loading())
 
-        val fresh = filmsApi.getTopFilms(type = TYPE_POPULAR).mapToDataState { response ->
+        val fresh = filmsApi.getTopFilms(type = TYPE_POPULAR).mapToDataState(errorData = cache) { response ->
             response.films.mapNotNull {
                 it.toFilm(favouriteIds = favouriteIds)
             }
@@ -67,9 +64,18 @@ internal class FilmsRepoImpl(
     }
 
     override fun getFilm(filmId: String): Flow<DataState<Film>> = flow {
-        emit(DataState.Loading())
-        val result = filmsApi.getFilm(filmId = filmId).flatMapToDataState {
-            it.toFilm()?.success() ?: DataState.Error("Data loss")
+        val favourite = favouriteFilmsDao.getFilm(filmId)?.toFilm()
+        filmsDao.getFilm(id = filmId)?.let {
+            emit(it.toFilm(favourite = favourite != null).success())
+        } ?: run {
+            favourite?.let {
+                emit(it.success())
+            } ?: run {
+                emit(DataState.Loading())
+            }
+        }
+        val result = filmsApi.getFilm(filmId = filmId).flatMapToDataState(errorData = favourite) {
+            it.toFilm()?.success() ?: DataState.Error("Data loss", favourite)
         }
         emit(result)
     }

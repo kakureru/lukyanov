@@ -13,16 +13,22 @@ sealed class RequestResult<out T : Any, out U : Any> {
     data class UnknownError(val error: Throwable?) : RequestResult<Nothing, Nothing>()
 }
 
-fun <T : Any, R> GenericRequestResult<T>.mapToDataState(map: (T) -> R): DataState<R> = when (this) {
+fun <T : Any, R> GenericRequestResult<T>.mapToDataState(
+    errorData: R? = null,
+    map: (T) -> R
+): DataState<R> = when (this) {
     is RequestResult.Success -> DataState.Success(map(this.body))
-    is RequestResult.ApiError -> DataState.Error(this.body.message)
-    is RequestResult.NetworkError -> DataState.Error(error.message)
-    is RequestResult.UnknownError -> DataState.Error(error?.message)
+    is RequestResult.ApiError -> DataState.Error(this.body.message, errorData)
+    is RequestResult.NetworkError -> DataState.Error(error.message, errorData)
+    is RequestResult.UnknownError -> DataState.Error(error?.message, errorData)
 }
 
-fun <T : Any, R> GenericRequestResult<T>.flatMapToDataState(map: (T) -> DataState<R>): DataState<R> = when (this) {
-    is RequestResult.Success -> map(this.body)
-    is RequestResult.ApiError -> DataState.Error(this.body.message)
-    is RequestResult.UnknownError -> DataState.Error(error?.message)
-    is RequestResult.NetworkError -> DataState.Error(error.message)
-}
+fun <T : Any, R> GenericRequestResult<T>.flatMapToDataState(
+    errorData: R? = null,
+    map: (T) -> DataState<R>
+): DataState<R> = when (this) {
+        is RequestResult.Success -> map(this.body)
+        is RequestResult.ApiError -> DataState.Error(this.body.message, errorData)
+        is RequestResult.NetworkError -> DataState.Error(error.message, errorData)
+        is RequestResult.UnknownError -> DataState.Error(error?.message, errorData)
+    }

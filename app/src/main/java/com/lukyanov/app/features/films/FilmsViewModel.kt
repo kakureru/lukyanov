@@ -8,6 +8,7 @@ import com.lukyanov.app.R
 import com.lukyanov.app.common.ui.UiText
 import com.lukyanov.app.common.ui.toUiTextOrGenericError
 import com.lukyanov.app.component.films.FilmsRepo
+import com.lukyanov.app.component.films.model.Film
 import com.lukyanov.app.component.films.usecase.GetFavouriteFilmsUseCase
 import com.lukyanov.app.component.films.usecase.GetPopularFilmsUseCase
 import com.lukyanov.app.features.films.model.FilmFilter
@@ -18,6 +19,7 @@ import com.lukyanov.app.features.films.model.FilmsUiEffect
 import com.lukyanov.app.features.films.model.FilmsUiState
 import com.lukyanov.app.features.films.model.TopBarState
 import com.lukyanov.app.features.films.model.toFilmItemModel
+import com.lukyanov.app.features.films.model.toFilmsListContent
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -74,8 +76,8 @@ internal class FilmsViewModel(
     }
 
     fun onFilmLongClick(filmId: String) = viewModelScope.launch {
-        filmsRepo.toggleFavourite(filmId = filmId).onError {
-            _uiEffect.send(FilmsUiEffect.Error(it.toUiTextOrGenericError()))
+        filmsRepo.toggleFavourite(filmId = filmId).onError { msg, _ ->
+            _uiEffect.send(FilmsUiEffect.Error(msg.toUiTextOrGenericError()))
         }
     }
 
@@ -136,24 +138,27 @@ internal class FilmsViewModel(
         favouriteObservation?.cancel()
         popularObservation?.cancel()
         popularObservation = viewModelScope.launch {
-            getPopularFilmsUseCase(searchQuery = searchQuery).cancellable().collectLatest { result ->
-                result.on(
-                    loading = {
-                        _uiState.update { it.copy(filmsListState = FilmListState.Loading) }
-                    },
-                    success = { films ->
-                        val newFilms = films.map { it.toFilmItemModel() }
-                        val filmsListState = if (newFilms.isEmpty()) FilmListState.Placeholder
-                        else FilmListState.Content(films = newFilms)
-                        _uiState.update { it.copy(filmsListState = filmsListState) }
-                    },
-                    error = { msg ->
-                        _uiState.update {
-                            it.copy(filmsListState = FilmListState.Error(msg = msg.toUiTextOrGenericError()))
-                        }
-                    },
-                )
-            }
+            getPopularFilmsUseCase(searchQuery = searchQuery)
+                .cancellable()
+                .collectLatest { result ->
+                    result.on(
+                        loading = {
+                            _uiState.update { it.copy(filmsListState = FilmListState.Loading) }
+                        },
+                        success = { films ->
+                            _uiState.update { it.copy(filmsListState = films.toFilmsListContent()) }
+                        },
+                        error = { msg, data ->
+                            if (data != null) {
+                                _uiState.update { it.copy(filmsListState = data.toFilmsListContent()) }
+                                _uiEffect.send(FilmsUiEffect.Error(msg.toUiTextOrGenericError()))
+                            } else
+                                _uiState.update {
+                                    it.copy(filmsListState = FilmListState.Error(msg = msg.toUiTextOrGenericError()))
+                                }
+                        },
+                    )
+                }
         }
     }
 
@@ -161,12 +166,11 @@ internal class FilmsViewModel(
         popularObservation?.cancel()
         favouriteObservation?.cancel()
         favouriteObservation = viewModelScope.launch {
-            getFavouriteFilmsUseCase(searchQuery = searchQuery).cancellable().collectLatest { films ->
-                val filmsListState = FilmListState.Content(
-                    films = films.map { it.toFilmItemModel() }
-                )
-                _uiState.update { it.copy(filmsListState = filmsListState) }
-            }
+            getFavouriteFilmsUseCase(searchQuery = searchQuery)
+                .cancellable()
+                .collectLatest { films ->
+                    _uiState.update { it.copy(filmsListState = films.toFilmsListContent()) }
+                }
         }
     }
 

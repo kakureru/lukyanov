@@ -13,6 +13,9 @@ interface FilmsDao {
     @Query("SELECT * FROM films")
     suspend fun getFilms(): List<FilmEntity>
 
+    @Query("SELECT * FROM films WHERE id = :id")
+    suspend fun getFilm(id: String): FilmEntity?
+
     @Transaction
     suspend fun refreshFilms(films: List<FilmEntity>) {
         clearData()

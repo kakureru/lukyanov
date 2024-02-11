@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.lukyanov.app.common.ui.toUiTextOrGenericError
 import com.lukyanov.app.component.films.FilmsRepo
 import com.lukyanov.app.features.film_details.model.FilmDetailsNavEvent
+import com.lukyanov.app.features.film_details.model.FilmDetailsUiEffect
 import com.lukyanov.app.features.film_details.model.FilmDetailsUiState
 import com.lukyanov.app.features.film_details.model.toFilmDetailsContent
+import com.lukyanov.app.features.films.model.FilmsUiEffect
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +31,9 @@ internal class FilmDetailsViewModel(
     private val _uiState = MutableStateFlow<FilmDetailsUiState>(FilmDetailsUiState.Content())
     val uiState: StateFlow<FilmDetailsUiState> = _uiState.asStateFlow()
 
+    private val _uiEffect = Channel<FilmDetailsUiEffect>()
+    val uiEffect: Flow<FilmDetailsUiEffect> = _uiEffect.receiveAsFlow()
+
     private val _navEvent = Channel<FilmDetailsNavEvent>()
     val navEvent: Flow<FilmDetailsNavEvent> = _navEvent.receiveAsFlow()
 
@@ -47,8 +52,13 @@ internal class FilmDetailsViewModel(
                     success = { film ->
                         _uiState.update { film.toFilmDetailsContent() }
                     },
-                    error = { error ->
-                        _uiState.update { FilmDetailsUiState.Error(error.toUiTextOrGenericError()) }
+                    error = { msg, data ->
+                        if (data != null) {
+                            _uiState.update { data.toFilmDetailsContent() }
+                            _uiEffect.send(FilmDetailsUiEffect.Error(msg.toUiTextOrGenericError()))
+                        } else {
+                            _uiState.update { FilmDetailsUiState.Error(msg.toUiTextOrGenericError()) }
+                        }
                     }
                 )
             }

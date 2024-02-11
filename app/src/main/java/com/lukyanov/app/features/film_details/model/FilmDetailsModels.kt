@@ -15,6 +15,11 @@ internal sealed interface FilmDetailsUiState {
     ) : FilmDetailsUiState
 }
 
+internal sealed interface FilmDetailsUiEffect {
+    class Error(val msg: UiText) : FilmDetailsUiEffect
+}
+
+
 internal sealed interface FilmDetailsNavEvent {
     data object Exit : FilmDetailsNavEvent
 }

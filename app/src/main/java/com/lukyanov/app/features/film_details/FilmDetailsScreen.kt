@@ -1,5 +1,6 @@
 package com.lukyanov.app.features.film_details
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -37,7 +39,9 @@ import com.lukyanov.app.R
 import com.lukyanov.app.common.ui.BaseError
 import com.lukyanov.app.common.ui.CollectFlowSafelyLoosingProof
 import com.lukyanov.app.common.ui.FullScreenLoader
+import com.lukyanov.app.common.ui.SafeLaunchedEffect
 import com.lukyanov.app.features.film_details.model.FilmDetailsNavEvent
+import com.lukyanov.app.features.film_details.model.FilmDetailsUiEffect
 import com.lukyanov.app.features.film_details.model.FilmDetailsUiState
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -47,10 +51,21 @@ internal fun FilmDetailsScreen(
     onBackClick: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     CollectFlowSafelyLoosingProof(flow = viewModel.navEvent) {
         when (it) {
             FilmDetailsNavEvent.Exit -> onBackClick()
+        }
+    }
+
+    SafeLaunchedEffect {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is FilmDetailsUiEffect.Error -> {
+                    Toast.makeText(context, effect.msg.stringValue(context), Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
