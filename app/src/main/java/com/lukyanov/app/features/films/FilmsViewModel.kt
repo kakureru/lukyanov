@@ -87,12 +87,11 @@ internal class FilmsViewModel(
 
     fun onFilterClick(filter: FilmFilter) {
         _uiState.update {  state ->
-            state.copy(
-                filters = state.filters.map {
-                    if (it.filter == filter) it.copy(selected = true)
-                    else it.copy(selected = false)
-                }
-            )
+            val newFilters = state.filters.map {
+                if (it.filter == filter) it.copy(selected = true)
+                else it.copy(selected = false)
+            }
+            state.copy(filters = newFilters)
         }
         val query = _searchQuery.value ?: ""
         when (filter) {
@@ -133,9 +132,8 @@ internal class FilmsViewModel(
                         _uiState.update { it.copy(filmsListState = FilmListState.Loading) }
                     },
                     success = { films ->
-                        val filmsListState = FilmListState.Content(
-                            films = films.map { it.toFilmItemModel() }
-                        )
+                        val newFilms = films.map { it.toFilmItemModel() }
+                        val filmsListState = FilmListState.Content(films = newFilms)
                         _uiState.update { it.copy(filmsListState = filmsListState) }
                     },
                     error = { msg ->
