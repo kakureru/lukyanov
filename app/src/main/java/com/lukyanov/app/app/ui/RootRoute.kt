@@ -1,4 +1,4 @@
-package com.lukyanov.app.app
+package com.lukyanov.app.app.ui
 
 sealed class RootRoute(val route: String) {
     data object Films : RootRoute(route = "films")

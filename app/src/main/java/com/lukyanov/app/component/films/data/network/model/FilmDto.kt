@@ -21,7 +21,7 @@ fun FilmDto.toFilm(favouriteIds: List<String> = emptyList()): Film? {
     return Film(
         id = id?.toString() ?: kinopoiskId?.toString() ?: return null,
         name = name ?: return null,
-        description = null,
+        description = description,
         genres = genres?.map { it.genre } ?: emptyList(),
         countries = countries?.map { it.country } ?: emptyList(),
         year = year,

@@ -6,7 +6,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.lukyanov.app.app.RootRoute
 import com.lukyanov.app.features.film_details.FilmDetailsScreen
 import com.lukyanov.app.features.films.ui.FilmsScreen
 import org.koin.androidx.compose.koinViewModel
