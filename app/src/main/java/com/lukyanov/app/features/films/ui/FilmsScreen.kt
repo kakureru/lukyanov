@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Search
@@ -21,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -120,6 +122,15 @@ internal fun FilmsScreen(
                     )
                 }
             }
+
+            FilmListState.Placeholder -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Placeholder()
+                }
+            }
         }
     }
 }
@@ -216,5 +227,21 @@ private fun FilterButton(
         colors = colors
     ) {
         Text(text = text)
+    }
+}
+
+@Composable
+private fun Placeholder(
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary,
+    ) {
+        Text(
+            text = stringResource(id = R.string.not_found),
+            modifier = Modifier.padding(vertical = 11.dp, horizontal = 20.dp)
+        )
     }
 }

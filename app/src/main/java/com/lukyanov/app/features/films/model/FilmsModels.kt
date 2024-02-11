@@ -23,6 +23,7 @@ internal enum class FilmFilter(val text: UiText) {
 internal sealed interface FilmListState {
     data object Loading : FilmListState
     data class Error(val msg: UiText) : FilmListState
+    data object Placeholder : FilmListState
     data class Content(
         val films: List<FilmItemModel> = emptyList(),
     ) : FilmListState

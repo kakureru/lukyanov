@@ -48,7 +48,7 @@ internal class FilmsViewModel(
     private val _searchQuery: MutableStateFlow<String?> = MutableStateFlow(null)
 
     private val initState = FilmsUiState(
-        topBarState = TopBarState.Title(text = UiText.Resource(R.string.popular)),
+        topBarState = TopBarState.Title(text = FilmFilter.POPULAR.text),
         filters = listOf(
             FilmFilterItem(filter = FilmFilter.POPULAR, selected = true),
             FilmFilterItem(filter = FilmFilter.FAVOURITES, selected = false),
@@ -91,7 +91,12 @@ internal class FilmsViewModel(
                 if (it.filter == filter) it.copy(selected = true)
                 else it.copy(selected = false)
             }
-            state.copy(filters = newFilters)
+            val newBarState =
+                if (state.topBarState is TopBarState.Title)
+                    TopBarState.Title(text = filter.text)
+                else state.topBarState
+
+            state.copy(filters = newFilters, topBarState = newBarState)
         }
         val query = _searchQuery.value ?: ""
         when (filter) {
@@ -110,8 +115,13 @@ internal class FilmsViewModel(
     }
 
     fun onExitSearchClick() {
-        _uiState.update {
-            it.copy(topBarState = TopBarState.Title(UiText.Resource(R.string.popular)))
+        _uiState.update { state ->
+            val newBarState = uiState.value.filters
+                .firstOrNull { it.selected }
+                ?.filter?.text
+                ?.let { TopBarState.Title(text = it) }
+                ?: TopBarState.Title(FilmFilter.POPULAR.text)
+            state.copy(topBarState = newBarState)
         }
         viewModelScope.launch {
             _searchQuery.update { "" }
@@ -133,7 +143,8 @@ internal class FilmsViewModel(
                     },
                     success = { films ->
                         val newFilms = films.map { it.toFilmItemModel() }
-                        val filmsListState = FilmListState.Content(films = newFilms)
+                        val filmsListState = if (newFilms.isEmpty()) FilmListState.Placeholder
+                        else FilmListState.Content(films = newFilms)
                         _uiState.update { it.copy(filmsListState = filmsListState) }
                     },
                     error = { msg ->

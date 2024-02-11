@@ -8,4 +8,5 @@
     <string name="countries">Страны</string>
     <string name="error_generic">Произошла ошибка при загрузке данных, проверьте подключение к сети</string>
     <string name="action_repeat">Повторить</string>
+    <string name="not_found">Не найдено</string>
 </resources>
