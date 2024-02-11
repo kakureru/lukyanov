@@ -9,6 +9,7 @@ val filmsFeatureModule = module {
         FilmsViewModel(
             filmsRepo = get(),
             getPopularFilmsUseCase = get(),
+            getFavouriteFilmsUseCase = get(),
         )
     }
 }

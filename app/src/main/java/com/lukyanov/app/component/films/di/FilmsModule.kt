@@ -4,6 +4,7 @@ import com.lukyanov.app.component.films.FilmsRepo
 import com.lukyanov.app.component.films.data.FilmsRepoImpl
 import com.lukyanov.app.component.films.data.db.FilmsDatabase
 import com.lukyanov.app.component.films.data.network.FilmsApi
+import com.lukyanov.app.component.films.usecase.GetFavouriteFilmsUseCase
 import com.lukyanov.app.component.films.usecase.GetPopularFilmsUseCase
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -33,6 +34,12 @@ val filmsComponentModule = module {
 
     factory {
         GetPopularFilmsUseCase(
+            filmsRepo = get(),
+        )
+    }
+
+    factory {
+        GetFavouriteFilmsUseCase(
             filmsRepo = get(),
         )
     }

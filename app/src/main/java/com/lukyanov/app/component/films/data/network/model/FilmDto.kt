@@ -9,6 +9,7 @@ class FilmDto(
     @SerialName("filmId") val id: Int? = null,
     @SerialName("kinopoiskId") val kinopoiskId: Int? = null,
     @SerialName("nameRu") val name: String? = null,
+    val description: String? = null,
     val genres: List<GenreDto>? = null,
     val countries: List<CountryDto>? = null,
     val year: Int? = null,
@@ -16,7 +17,7 @@ class FilmDto(
     val posterUrlPreview: String? = null,
 )
 
-fun FilmDto.toFilm(favourite: Boolean = false): Film? {
+fun FilmDto.toFilm(favouriteIds: List<String> = emptyList()): Film? {
     return Film(
         id = id?.toString() ?: kinopoiskId?.toString() ?: return null,
         name = name ?: return null,
@@ -26,6 +27,6 @@ fun FilmDto.toFilm(favourite: Boolean = false): Film? {
         year = year,
         posterUrl = posterUrl,
         posterUrlPreview = posterUrlPreview,
-        favourite = favourite,
+        favourite = id?.toString() in favouriteIds || kinopoiskId?.toString() in favouriteIds,
     )
 }

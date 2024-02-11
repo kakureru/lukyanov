@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.lukyanov.app.component.films.data.db.converter.ListConverter
-import com.lukyanov.app.component.films.data.network.model.FilmDto
 import com.lukyanov.app.component.films.model.Film
 
 @Entity(tableName = "films")
@@ -17,17 +16,6 @@ data class FilmEntity(
     val countries: List<String>,
     val genres: List<String>,
 )
-
-fun FilmDto.toFilmEntity(): FilmEntity? {
-    return FilmEntity(
-        id = id?.toString() ?: return null,
-        name = name ?: return null,
-        year = year,
-        posterUrlPreview = posterUrlPreview,
-        genres = genres?.map { it.genre } ?: emptyList(),
-        countries = countries?.map { it.country } ?: emptyList(),
-    )
-}
 
 fun Film.toFilmEntity(): FilmEntity {
     return FilmEntity(

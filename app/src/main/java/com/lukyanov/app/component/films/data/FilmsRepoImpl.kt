@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 internal class FilmsRepoImpl(
     private val filmsApi: FilmsApi,
@@ -35,7 +36,7 @@ internal class FilmsRepoImpl(
 
         val fresh = filmsApi.getTopFilms(type = TYPE_POPULAR).mapToDataState { response ->
             response.films.mapNotNull {
-                it.toFilm(favourite = it.id?.toString() in favouriteIds)
+                it.toFilm(favouriteIds = favouriteIds)
             }
         }
         send(fresh)
@@ -52,11 +53,15 @@ internal class FilmsRepoImpl(
         }
     }
 
+    override fun getFavouriteFilms(): Flow<List<Film>> = favouriteFilmsDao.getAll().map { films ->
+        films.map { it.toFilm() }
+    }
+
     override fun searchFilms(searchQuery: String): Flow<DataState<List<Film>>> = flow {
         emit(DataState.Loading())
         val favouriteIds = favouriteFilmsDao.getAllIds()
         val result = filmsApi.getFilmsByQuery(query = searchQuery).mapToDataState { response ->
-            response.items.mapNotNull { it.toFilm(favourite = it.id?.toString() in favouriteIds) }
+            response.items.mapNotNull { it.toFilm(favouriteIds = favouriteIds) }
         }
         emit(result)
     }
@@ -78,13 +83,10 @@ internal class FilmsRepoImpl(
             val result = filmsApi.getFilm(filmId = filmId).flatMapToDataState { filmDto ->
                 filmDto.toFilmEntity()?.success() ?: DataState.Error("Data loss")
             }
-            return when (result) {
-                is DataState.Success -> {
-                    favouriteFilmsDao.saveFilm(result.data)
-                    Unit.success()
-                }
-                else -> result as DataState<Unit>
+            result.onSuccess {
+                favouriteFilmsDao.saveFilm(it)
             }
+            return result as DataState<Unit>
         }
     }
 

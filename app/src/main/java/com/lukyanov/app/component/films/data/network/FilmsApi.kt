@@ -1,7 +1,6 @@
 package com.lukyanov.app.component.films.data.network
 
 import com.lukyanov.app.common.util.request_result.GenericRequestResult
-import com.lukyanov.app.component.films.data.network.model.FilmDetailsDto
 import com.lukyanov.app.component.films.data.network.model.FilmDto
 import com.lukyanov.app.component.films.data.network.model.GetFilmsResponse
 import com.lukyanov.app.component.films.data.network.model.GetPopularFilmsResponse
@@ -19,7 +18,7 @@ internal interface FilmsApi {
     @GET("v2.2/films/{id}")
     suspend fun getFilm(
         @Path("id") filmId: String,
-    ): GenericRequestResult<FilmDetailsDto>
+    ): GenericRequestResult<FilmDto>
 
     @GET("v2.2/films")
     suspend fun getFilmsByQuery(
